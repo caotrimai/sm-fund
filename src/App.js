@@ -1,10 +1,12 @@
 import {Container} from '@mui/material'
 import { makeStyles } from '@mui/styles';
-import Home from './features/home'
+import Fund from './features/Fund'
 
 const useStyles = makeStyles({
   App: {
-    backgroundColor: '#efefef'
+    backgroundColor: '#efefef',
+    margin: 0,
+    padding: 0
   },
   body: {
     backgroundColor: '#fff'
@@ -17,7 +19,7 @@ function App() {
   return (
     <div className={classes.App}>
       <Container className={classes.body}>
-        <Home/>
+        <Fund/>
       </Container>
     </div>
   );

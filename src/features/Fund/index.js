@@ -1,16 +1,29 @@
+import {makeStyles} from '@mui/styles'
 import React, {useCallback, useEffect, useReducer} from 'react'
 import Web3 from 'web3'
 import {SM_FUND_ABI, SM_FUND_ADDRESS} from '../../config/SmFund'
+import CustomButton from '../common/components/CustomButton'
 
 const web3 = new Web3(window.ethereum) // ? tại sao truyển window.ethereum vào đây, không truyền có được không. 
 // tại vì nếu đã dùng web3 thì phải dùng cho cái mạng rồi, nên đúng ra mặc định nó phải tự lấy window.ethereum truyền vào luôn chứ sao mình cần truyền nhỉ
 
 const smFundContract = new web3.eth.Contract(SM_FUND_ABI, SM_FUND_ADDRESS)
-export default function Home () {
 
+const useStyles =  makeStyles({
+  textRed: {
+    color: 'red'
+  },
+  marginEven: {
+    margin: '8px'
+  }
+})
+
+export default function Home () {
+  const classes = useStyles()
   const [state, setState] = useReducer(
     (state, newState) => ({...state, ...newState}),
     {
+      owner: '',
       balance: '0',
       accounts: [],
       currentAccount: null,
@@ -20,6 +33,7 @@ export default function Home () {
     }, undefined,
   )
   const {
+    owner,
     balance,
     currentAccount,
     connectMsg,
@@ -28,27 +42,32 @@ export default function Home () {
   } = state
 
   const connectMetamask = useCallback(() => {
+    if(!window.ethereum) {
+      return
+    }
     const requestAccounts = window.ethereum.request({method: 'eth_requestAccounts'})
     requestAccounts.then(accounts => {
       setState({accounts, currentAccount: accounts[0]})
     })
   }, [])
 
-  const loadBalances = useCallback(() => {
+  const loadContractInfo = useCallback(() => {
     smFundContract.methods.getBalance().call()
       .then((balance) => setState({balance}))
+    smFundContract.methods.owner().call()
+      .then((owner) => setState({owner}))
   },[])
 
   useEffect(() => {
     if (window.ethereum) {
       console.log('MetaMask is installed!')
       connectMetamask()
-      loadBalances()
+      loadContractInfo()
     } else {
       setState({connectMsg: 'Please install meta mask'})
     }
 
-  }, [connectMetamask, loadBalances])
+  }, [connectMetamask, loadContractInfo])
   
   function convertWeiToBnb(value) {
     return web3.utils.fromWei(value, 'ether')
@@ -86,18 +105,19 @@ export default function Home () {
            
         }
       })
+      .catch(err => console.log(err))
   }
  
 
   return (
     <div>
-      Fund
-      <button onClick={connectMetamask}>Connect metamask</button>
-      <button onClick={loadBalances}>Load balances</button>
+      <h2>Fund created by {owner}</h2>
+      <h5 className={classes.textRed}>{connectMsg}</h5>
+      <CustomButton onClick={connectMetamask}>Connect metamask</CustomButton>
+      <CustomButton onClick={loadContractInfo}>Load balances</CustomButton>
       <div>{currentAccount}</div>
-      <div>{connectMsg}</div>
       <div>{convertWeiToBnb(balance)} BNB</div>
-      <button onClick={loadMembers}>Load members</button>
+      <CustomButton onClick={loadMembers}>Load members</CustomButton>
 
       <hr/>
       BNB:
@@ -116,7 +136,7 @@ export default function Home () {
         onChange={(e) => setState({depositMsg: e.target.value})}
       />
       <br/>
-      <button onClick={deposit}>Deposit</button>
+      <CustomButton onClick={deposit}>Deposit</CustomButton>
       <hr/>
       
     </div>
