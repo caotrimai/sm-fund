@@ -1,6 +1,6 @@
 import {Container} from '@mui/material'
 import { makeStyles } from '@mui/styles';
-import Fund from './features/Fund'
+import Donate from './features/Donate'
 
 const useStyles = makeStyles({
   App: {
@@ -9,6 +9,7 @@ const useStyles = makeStyles({
     padding: 0
   },
   body: {
+    height: '100%',
     backgroundColor: '#fff'
   }
 })
@@ -19,7 +20,7 @@ function App() {
   return (
     <div className={classes.App}>
       <Container className={classes.body}>
-        <Fund/>
+        <Donate/>
       </Container>
     </div>
   );

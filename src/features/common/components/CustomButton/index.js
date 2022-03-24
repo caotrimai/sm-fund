@@ -11,7 +11,7 @@ export default function CustomButton (props) {
   const classes = useStyles()
   return (
     <span className={classes.customButton}>
-      <Button size='small' variant='contained' {...props}/>
+      <Button size='small' variant='outlined' {...props}/>
     </span>
   )
 }
