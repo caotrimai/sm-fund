@@ -1,9 +1,9 @@
 import detectEthereumProvider from '@metamask/detect-provider'
 import {makeStyles} from '@mui/styles'
 import React, {useCallback, useEffect, useReducer} from 'react'
+import Web3 from 'web3'
 import {SM_FUND_ABI, SM_FUND_ADDRESS} from '../../config/SmFund'
 import CustomButton from '../common/components/CustomButton'
-import Web3 from 'web3'
 
 const useStyles = makeStyles({
   donate: {
@@ -11,6 +11,17 @@ const useStyles = makeStyles({
   },
   redText: {
     color: 'red'
+  },
+  donateForm: {
+    padding: '8px',
+    maxWidth: '500px',
+    margin: '8px auto',
+    borderRadius: '4px',
+    backgroundColor: '#fff',
+    boxShadow: `
+      0px 2px 1px -1px rgb(0 0 0 / 20%),
+      0px 1px 1px 0px rgb(0 0 0 / 14%),
+      0px 1px 3px 0px rgb(0 0 0 / 12%)`
   },
   block: {
     padding: '8px',
@@ -34,6 +45,7 @@ export default function Faucet () {
       faucetMoney: 0,
       donateInput: '',
       donateMsg: '',
+      reload: false,
     }, undefined,
   )
   const {
@@ -46,6 +58,7 @@ export default function Faucet () {
     donateMoney,
     donateInput,
     donateMsg,
+    reload
   } = state
 
   const loadBalance = useCallback(() => {
@@ -93,6 +106,11 @@ export default function Faucet () {
     }
   },[contract, loadDonateMoney])
   
+  useEffect(() => {
+    loadBalance()
+    loadDonateMoney()
+  },[reload])
+  
   const handleConnectWallet = async () => {
     const provider = await detectEthereumProvider()
     if (provider) {
@@ -113,6 +131,8 @@ export default function Faucet () {
       setState({errorMsg: 'Please install metamask!'})
     }
   }
+  
+  const reloadEffect = () => setState({reload: !reload})
 
   const handleDonate = () => {
     if(!contract) {
@@ -125,8 +145,7 @@ export default function Faucet () {
       value: web3.utils.toWei(donateInput.toString(), 'ether'),
     })
     .then(() => {
-      loadBalance()
-      loadDonateMoney()
+      reloadEffect()
       console.log('Donate success!')
     })
     .catch((err) => console.log(err))
@@ -141,25 +160,23 @@ export default function Faucet () {
       .send({from: currentAccount})
       .then(() => {
         console.log('Withdraw success')
-        loadBalance()
-        loadDonateMoney()
+        reloadEffect()
       })
       .catch((err) => console.log(err))
   }
   
   return (
     <div className={classes.donate}>
-      <h2>DONATE PAGE</h2>
       <h4 className={classes.redText}>{errorMsg}</h4>
       <h4> Current account: {currentAccount}</h4>
       <h4>Balance: {balance} BNB</h4>
       <CustomButton onClick={handleConnectWallet}>
         Connect metamask
       </CustomButton>
-      <div>
-        <h2>Donate contract</h2>
+      <div className={classes.donateForm}>
+        <h2>Donate</h2>
         <h5>WALLET ADDRESS: {SM_FUND_ADDRESS}</h5>
-        <h5>TOTAL MONEY: {donateMoney} BNB</h5>
+        <p>Current Balance: <strong> {donateMoney} BNB</strong></p>
         <div>
           <input 
             type='text'

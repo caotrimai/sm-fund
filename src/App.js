@@ -9,8 +9,7 @@ const useStyles = makeStyles({
     padding: 0
   },
   body: {
-    height: '100%',
-    backgroundColor: '#fff'
+    minHeight: '100%',
   }
 })
 
