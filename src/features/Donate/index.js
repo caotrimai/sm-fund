@@ -2,7 +2,8 @@ import detectEthereumProvider from '@metamask/detect-provider'
 import {makeStyles} from '@mui/styles'
 import React, {useCallback, useEffect, useReducer} from 'react'
 import Web3 from 'web3'
-import {SM_FUND_ABI, SM_FUND_ADDRESS} from '../../config/SmFund'
+// import {SM_FUND_ABI, SM_FUND_ADDRESS} from '../../config/SmFund'
+import {infuraContract, SM_ABI, SM_ADDRESS} from '../../config/SmFundRopsten'
 import CustomButton from '../common/components/CustomButton'
 
 const useStyles = makeStyles({
@@ -43,6 +44,7 @@ export default function Faucet () {
       balance: 0,
       errorMsg: '',
       faucetMoney: 0,
+      contractAddress: '',
       donateInput: '',
       donateMsg: '',
       reload: false,
@@ -55,6 +57,7 @@ export default function Faucet () {
     currentAccount,
     balance,
     errorMsg,
+    contractAddress,
     donateMoney,
     donateInput,
     donateMsg,
@@ -102,6 +105,7 @@ export default function Faucet () {
   
   useEffect(() => {
     if (contract) {
+      setState({contractAddress: contract.options.address})
       loadDonateMoney()
     }
   },[contract, loadDonateMoney])
@@ -110,6 +114,18 @@ export default function Faucet () {
     loadBalance()
     loadDonateMoney()
   },[reload])
+
+  useEffect(() => {
+    web3 && infuraContract.events.SmVuaNhanDuocTien(
+      {filter:{}, fromBlock:"latest"}, 
+      (error, event) => {
+        const address = event.returnValues[0]
+        const amount = web3.utils.fromWei(event.returnValues[1], "ether")
+        const message = event.returnValues[2]
+        console.log({address, amount, message})
+      }
+    );
+  },[web3])
   
   const handleConnectWallet = async () => {
     const provider = await detectEthereumProvider()
@@ -117,7 +133,7 @@ export default function Faucet () {
       provider.request({method: 'eth_requestAccounts'})
       .then((accounts) => {
         const web3 = new Web3(provider)
-        const contract = new web3.eth.Contract(SM_FUND_ABI, SM_FUND_ADDRESS)
+        const contract = new web3.eth.Contract(SM_ABI, SM_ADDRESS)
         setState({
           provider,
           web3,
@@ -175,7 +191,7 @@ export default function Faucet () {
       </CustomButton>
       <div className={classes.donateForm}>
         <h2>Donate</h2>
-        <h5>WALLET ADDRESS: {SM_FUND_ADDRESS}</h5>
+        <h5>WALLET ADDRESS: {contractAddress}</h5>
         <p>Current Balance: <strong> {donateMoney} BNB</strong></p>
         <div>
           <input 
